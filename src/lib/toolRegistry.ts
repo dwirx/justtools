@@ -1,6 +1,30 @@
 import { lazy, ComponentType } from 'react';
 
-export type Category = 'converter' | 'developer' | 'text' | 'image' | 'utility';
+// ╔═══════════════════════════════════════════════════════════════════════════╗
+// ║                           TOOL REGISTRY                                   ║
+// ╠═══════════════════════════════════════════════════════════════════════════╣
+// ║  Pusat registrasi semua tools di website ini.                             ║
+// ║                                                                           ║
+// ║  📌 CARA MENAMBAH TOOL BARU:                                              ║
+// ║  1. Buat file: src/pages/tools/NamaToolPage.tsx                          ║
+// ║  2. Tambahkan entry baru di TOOLS_DATA di bawah                          ║
+// ║  3. Selesai! Tool otomatis muncul di homepage & routing                  ║
+// ╚═══════════════════════════════════════════════════════════════════════════╝
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TYPES & INTERFACES
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Kategori tool yang tersedia */
+export const CATEGORIES = {
+  converter: { label: 'Format Converter', icon: '🔄' },
+  developer: { label: 'Developer Tools', icon: '👨‍💻' },
+  text: { label: 'Text Processing', icon: '📝' },
+  image: { label: 'Image Tools', icon: '🖼️' },
+  utility: { label: 'Utilities', icon: '🧰' },
+} as const;
+
+export type Category = keyof typeof CATEGORIES;
 
 export interface ToolMeta {
   id: string;
@@ -16,17 +40,23 @@ export interface ToolEntry extends ToolMeta {
   component: ComponentType;
 }
 
-// =============================================================
-// TOOL REGISTRY - Tambah tool baru di sini saja!
-// =============================================================
-// Untuk menambah tool baru:
-// 1. Buat file di src/pages/tools/NamaToolPage.tsx
-// 2. Import lazy component di bawah
-// 3. Tambahkan entry di array toolRegistry
-// =============================================================
+// ─────────────────────────────────────────────────────────────────────────────
+// TOOLS DATA - Tambahkan tool baru di sini!
+// ─────────────────────────────────────────────────────────────────────────────
 
-const toolRegistry: ToolEntry[] = [
-  // ===== FORMAT CONVERTERS =====
+const TOOLS_DATA: ToolEntry[] = [
+  // ┌─────────────────────────────────────────────────────────────────────────┐
+  // │ 🔄 FORMAT CONVERTERS                                                    │
+  // └─────────────────────────────────────────────────────────────────────────┘
+  {
+    id: 'base64-encoder',
+    name: 'Base64 Encoder/Decoder',
+    description: 'Encode text to Base64 or decode Base64 to text',
+    category: 'converter',
+    icon: '🔐',
+    tags: ['base64', 'encode', 'decode'],
+    component: lazy(() => import('@/pages/tools/Base64EncoderPage')),
+  },
   {
     id: 'json-formatter',
     name: 'JSON Formatter',
@@ -38,15 +68,6 @@ const toolRegistry: ToolEntry[] = [
     component: lazy(() => import('@/pages/tools/JsonFormatterPage')),
   },
   {
-    id: 'base64-encoder',
-    name: 'Base64 Encoder/Decoder',
-    description: 'Encode text to Base64 or decode Base64 to text',
-    category: 'converter',
-    icon: '🔐',
-    tags: ['base64', 'encode', 'decode'],
-    component: lazy(() => import('@/pages/tools/Base64EncoderPage')),
-  },
-  {
     id: 'url-encoder',
     name: 'URL Encoder/Decoder',
     description: 'Encode or decode URL components safely',
@@ -56,35 +77,9 @@ const toolRegistry: ToolEntry[] = [
     component: lazy(() => import('@/pages/tools/UrlEncoderPage')),
   },
 
-  // ===== DEVELOPER TOOLS =====
-  {
-    id: 'uuid-generator',
-    name: 'UUID Generator',
-    description: 'Generate random UUID v4 identifiers',
-    category: 'developer',
-    icon: '🆔',
-    tags: ['uuid', 'id', 'random'],
-    featured: true,
-    component: lazy(() => import('@/pages/tools/UuidGeneratorPage')),
-  },
-  {
-    id: 'hash-generator',
-    name: 'Hash Generator',
-    description: 'Generate MD5, SHA-1, SHA-256 hashes',
-    category: 'developer',
-    icon: '#️⃣',
-    tags: ['hash', 'md5', 'sha'],
-    component: lazy(() => import('@/pages/tools/HashGeneratorPage')),
-  },
-  {
-    id: 'timestamp-converter',
-    name: 'Unix Timestamp',
-    description: 'Convert between Unix timestamps and dates',
-    category: 'developer',
-    icon: '⏰',
-    tags: ['timestamp', 'unix', 'date'],
-    component: lazy(() => import('@/pages/tools/TimestampConverterPage')),
-  },
+  // ┌─────────────────────────────────────────────────────────────────────────┐
+  // │ 👨‍💻 DEVELOPER TOOLS                                                      │
+  // └─────────────────────────────────────────────────────────────────────────┘
   {
     id: 'color-converter',
     name: 'Color Converter',
@@ -96,6 +91,15 @@ const toolRegistry: ToolEntry[] = [
     component: lazy(() => import('@/pages/tools/ColorConverterPage')),
   },
   {
+    id: 'hash-generator',
+    name: 'Hash Generator',
+    description: 'Generate MD5, SHA-1, SHA-256 hashes',
+    category: 'developer',
+    icon: '#️⃣',
+    tags: ['hash', 'md5', 'sha'],
+    component: lazy(() => import('@/pages/tools/HashGeneratorPage')),
+  },
+  {
     id: 'purple-cipher',
     name: 'Purple Cipher',
     description: 'PURPLE cipher encryption/decryption simulator',
@@ -105,16 +109,37 @@ const toolRegistry: ToolEntry[] = [
     featured: true,
     component: lazy(() => import('@/pages/tools/PurpleCipherPage')),
   },
-
-  // ===== TEXT PROCESSING =====
   {
-    id: 'text-counter',
-    name: 'Word Counter',
-    description: 'Count words, characters, sentences, and paragraphs',
+    id: 'timestamp-converter',
+    name: 'Unix Timestamp',
+    description: 'Convert between Unix timestamps and dates',
+    category: 'developer',
+    icon: '⏰',
+    tags: ['timestamp', 'unix', 'date'],
+    component: lazy(() => import('@/pages/tools/TimestampConverterPage')),
+  },
+  {
+    id: 'uuid-generator',
+    name: 'UUID Generator',
+    description: 'Generate random UUID v4 identifiers',
+    category: 'developer',
+    icon: '🆔',
+    tags: ['uuid', 'id', 'random'],
+    featured: true,
+    component: lazy(() => import('@/pages/tools/UuidGeneratorPage')),
+  },
+
+  // ┌─────────────────────────────────────────────────────────────────────────┐
+  // │ 📝 TEXT PROCESSING                                                      │
+  // └─────────────────────────────────────────────────────────────────────────┘
+  {
+    id: 'lorem-generator',
+    name: 'Lorem Ipsum Generator',
+    description: 'Generate placeholder text for your designs',
     category: 'text',
-    icon: '📊',
-    tags: ['word', 'count', 'character'],
-    component: lazy(() => import('@/pages/tools/WordCounterPage')),
+    icon: '📝',
+    tags: ['lorem', 'placeholder', 'text'],
+    component: lazy(() => import('@/pages/tools/LoremGeneratorPage')),
   },
   {
     id: 'text-case',
@@ -126,25 +151,18 @@ const toolRegistry: ToolEntry[] = [
     component: lazy(() => import('@/pages/tools/TextCasePage')),
   },
   {
-    id: 'lorem-generator',
-    name: 'Lorem Ipsum Generator',
-    description: 'Generate placeholder text for your designs',
+    id: 'text-counter',
+    name: 'Word Counter',
+    description: 'Count words, characters, sentences, and paragraphs',
     category: 'text',
-    icon: '📝',
-    tags: ['lorem', 'placeholder', 'text'],
-    component: lazy(() => import('@/pages/tools/LoremGeneratorPage')),
+    icon: '📊',
+    tags: ['word', 'count', 'character'],
+    component: lazy(() => import('@/pages/tools/WordCounterPage')),
   },
 
-  // ===== UTILITIES =====
-  {
-    id: 'password-generator',
-    name: 'Password Generator',
-    description: 'Generate secure random passwords',
-    category: 'utility',
-    icon: '🔒',
-    tags: ['password', 'secure', 'random'],
-    component: lazy(() => import('@/pages/tools/PasswordGeneratorPage')),
-  },
+  // ┌─────────────────────────────────────────────────────────────────────────┐
+  // │ 🧰 UTILITIES                                                            │
+  // └─────────────────────────────────────────────────────────────────────────┘
   {
     id: 'number-base',
     name: 'Number Base Converter',
@@ -154,40 +172,91 @@ const toolRegistry: ToolEntry[] = [
     tags: ['number', 'binary', 'hex', 'convert'],
     component: lazy(() => import('@/pages/tools/NumberBasePage')),
   },
+  {
+    id: 'password-generator',
+    name: 'Password Generator',
+    description: 'Generate secure random passwords',
+    category: 'utility',
+    icon: '🔒',
+    tags: ['password', 'secure', 'random'],
+    component: lazy(() => import('@/pages/tools/PasswordGeneratorPage')),
+  },
 ];
 
-// ===== HELPER FUNCTIONS =====
+// ─────────────────────────────────────────────────────────────────────────────
+// INTERNAL: Sorted registry (diurutkan A-Z berdasarkan nama)
+// ─────────────────────────────────────────────────────────────────────────────
 
-export const getToolRegistry = () => toolRegistry;
+const toolRegistry: ToolEntry[] = [...TOOLS_DATA].sort((a, b) =>
+  a.name.localeCompare(b.name)
+);
 
-export const getToolById = (id: string) => toolRegistry.find(t => t.id === id);
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPER FUNCTIONS
+// ─────────────────────────────────────────────────────────────────────────────
 
-export const getToolsByCategory = (category: Category) => 
-  toolRegistry.filter(t => t.category === category);
+/** Ambil semua tools */
+export const getToolRegistry = (): ToolEntry[] => toolRegistry;
 
-export const getFeaturedTools = () => 
-  toolRegistry.filter(t => t.featured);
+/** Cari tool berdasarkan ID */
+export const getToolById = (id: string): ToolEntry | undefined =>
+  toolRegistry.find((t) => t.id === id);
 
-export const searchTools = (query: string) => {
-  const q = query.toLowerCase();
-  return toolRegistry.filter(t => 
-    t.name.toLowerCase().includes(q) ||
-    t.description.toLowerCase().includes(q) ||
-    t.tags.some(tag => tag.toLowerCase().includes(q))
+/** Filter tools berdasarkan kategori */
+export const getToolsByCategory = (category: Category): ToolEntry[] =>
+  toolRegistry.filter((t) => t.category === category);
+
+/** Ambil tools yang featured */
+export const getFeaturedTools = (): ToolEntry[] =>
+  toolRegistry.filter((t) => t.featured);
+
+/** Hitung jumlah tools per kategori */
+export const getToolCountByCategory = (): Record<Category, number> => {
+  const counts = {} as Record<Category, number>;
+  for (const cat of Object.keys(CATEGORIES) as Category[]) {
+    counts[cat] = toolRegistry.filter((t) => t.category === cat).length;
+  }
+  return counts;
+};
+
+/** Total jumlah tools */
+export const getTotalToolCount = (): number => toolRegistry.length;
+
+/** Search tools berdasarkan query (nama, deskripsi, atau tags) */
+export const searchTools = (query: string): ToolEntry[] => {
+  if (!query.trim()) return toolRegistry;
+
+  const q = query.toLowerCase().trim();
+  return toolRegistry.filter(
+    (t) =>
+      t.name.toLowerCase().includes(q) ||
+      t.description.toLowerCase().includes(q) ||
+      t.tags.some((tag) => tag.toLowerCase().includes(q))
   );
 };
 
-// Convert to simple Tool type for components that don't need the component
-export const getToolsMeta = (): ToolMeta[] => 
-  toolRegistry.map(({ component, ...meta }) => meta);
+/** Ambil metadata tools saja (tanpa component) */
+export const getToolsMeta = (): ToolMeta[] =>
+  toolRegistry.map(({ component: _, ...meta }) => meta);
 
-// Categories definition
-export const categories: { id: Category; label: string; icon: string }[] = [
-  { id: 'converter', label: 'Format Converter', icon: '🔄' },
-  { id: 'developer', label: 'Developer Tools', icon: '👨‍💻' },
-  { id: 'text', label: 'Text Processing', icon: '📝' },
-  { id: 'image', label: 'Image Tools', icon: '🖼️' },
-  { id: 'utility', label: 'Utilities', icon: '🧰' },
-];
+/** Ambil semua tags unik */
+export const getAllTags = (): string[] => {
+  const tagSet = new Set<string>();
+  toolRegistry.forEach((t) => t.tags.forEach((tag) => tagSet.add(tag)));
+  return Array.from(tagSet).sort();
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CATEGORIES EXPORT (untuk backward compatibility)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const categories = Object.entries(CATEGORIES).map(([id, data]) => ({
+  id: id as Category,
+  ...data,
+}));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEFAULT EXPORT
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default toolRegistry;

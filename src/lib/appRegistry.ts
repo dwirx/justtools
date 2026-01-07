@@ -1,39 +1,24 @@
-// =============================================================
-// APP REGISTRY - Full Auto-Detection untuk HTML & TSX Apps
-// =============================================================
-// 
-// 🚀 CARA MENAMBAH APP BARU (ZERO CONFIG!):
-// 
-// ============ TSX APPS ============
-// 
-// SINGLE FILE:
-//   src/apps/HelloWorld.tsx
-//   → Otomatis jadi single TSX app
-//
-// PROJECT FOLDER:
-//   src/apps/my-game/index.tsx (atau App.tsx)
-//   src/apps/my-game/components/...
-//   → Otomatis jadi TSX project
-//
-// ============ HTML APPS ============
-// 
-// SINGLE FILE:
-//   public/justhtml/calculator.html
-//   → Otomatis jadi single HTML app
-//
-// PROJECT FOLDER:
-//   public/justhtml/snake/index.html
-//   public/justhtml/snake/script.js
-//   → Otomatis jadi HTML project
-//
-// ============ KUSTOMISASI ============
-// 
-// TSX: Export appMeta di file utama
-// HTML: Tambah di htmlCustomizations
-//
-// =============================================================
+// ╔═══════════════════════════════════════════════════════════════════════════╗
+// ║                    APP REGISTRY - Full Auto-Detection                     ║
+// ╠═══════════════════════════════════════════════════════════════════════════╣
+// ║                                                                           ║
+// ║  🚀 CARA MENAMBAH APP BARU (ZERO CONFIG!):                                ║
+// ║                                                                           ║
+// ║  ═══════════ TSX APPS ═══════════                                         ║
+// ║  Single File: src/apps/HelloWorld.tsx                                     ║
+// ║  Project:     src/apps/my-game/index.tsx                                  ║
+// ║                                                                           ║
+// ║  ═══════════ HTML APPS ═══════════                                        ║
+// ║  Single File: public/justhtml/calculator.html                             ║
+// ║  Project:     public/justhtml/snake/index.html                            ║
+// ║                                                                           ║
+// ║  📌 Icon akan di-generate otomatis! (Random tapi konsisten)               ║
+// ║  📌 Header Back & Home otomatis ada di semua apps!                        ║
+// ║                                                                           ║
+// ╚═══════════════════════════════════════════════════════════════════════════╝
 
 import { lazy, ComponentType } from 'react';
+import { getIconByCategory, getRandomIcon } from './iconGenerator';
 
 export type AppType = 'html-single' | 'html-project' | 'tsx-single' | 'tsx-project';
 export type AppCategory = 'Games' | 'Tools' | 'Productivity' | 'Education' | 'Entertainment' | 'Other';
@@ -94,15 +79,16 @@ const buildTsxApps = (): AppMeta[] => {
   Object.entries(tsxSingleFiles).forEach(([path, importFn]) => {
     const filename = path.split('/').pop()?.replace('.tsx', '') || 'unknown';
     const id = toKebabCase(filename);
+    const name = toReadableName(filename);
     
     apps.push({
       id: `tsx-${id}`,
-      name: toReadableName(filename),
+      name,
       description: `Single TSX app`,
       type: 'tsx-single',
       path: path,
       category: 'Other',
-      icon: '⚛️',
+      icon: getRandomIcon(name), // Auto-generate icon!
       featured: false,
       component: lazy(importFn),
     });
@@ -117,15 +103,16 @@ const buildTsxApps = (): AppMeta[] => {
     processedFolders.add(folderName);
     
     const id = toKebabCase(folderName);
+    const name = toReadableName(folderName);
     
     apps.push({
       id: `tsx-${id}`,
-      name: toReadableName(folderName),
+      name,
       description: `TSX project with multiple files`,
       type: 'tsx-project',
       path: path,
       category: 'Other',
-      icon: '📦',
+      icon: getRandomIcon(name), // Auto-generate icon!
       featured: false,
       component: lazy(importFn),
     });
@@ -140,15 +127,16 @@ const buildTsxApps = (): AppMeta[] => {
     processedFolders.add(folderName);
     
     const id = toKebabCase(folderName);
+    const name = toReadableName(folderName);
     
     apps.push({
       id: `tsx-${id}`,
-      name: toReadableName(folderName),
+      name,
       description: `TSX project with multiple files`,
       type: 'tsx-project',
       path: path,
       category: 'Other',
-      icon: '📦',
+      icon: getRandomIcon(name), // Auto-generate icon!
       featured: false,
       component: lazy(importFn),
     });
@@ -174,16 +162,17 @@ const buildHtmlApps = (): AppMeta[] => {
   Object.keys(htmlSingleFiles).forEach(path => {
     const filename = path.split('/').pop()?.replace('.html', '') || 'unknown';
     const id = toKebabCase(filename);
+    const name = toReadableName(filename);
     const custom = htmlCustomizations[id] || htmlCustomizations[filename] || {};
     
     apps.push({
       id: `html-${id}`,
-      name: custom.name || toReadableName(filename),
+      name: custom.name || name,
       description: custom.description || `Single HTML file`,
       type: 'html-single',
       path: `${filename}.html`,
       category: custom.category || 'Other',
-      icon: custom.icon || '📄',
+      icon: custom.icon || getIconByCategory(name, custom.category || 'Other'), // Auto-generate!
       featured: custom.featured || false,
     });
   });
@@ -193,16 +182,17 @@ const buildHtmlApps = (): AppMeta[] => {
     const parts = path.split('/');
     const folderName = parts[parts.length - 2];
     const id = toKebabCase(folderName);
+    const name = toReadableName(folderName);
     const custom = htmlCustomizations[id] || htmlCustomizations[folderName] || {};
     
     apps.push({
       id: `html-${id}`,
-      name: custom.name || toReadableName(folderName),
+      name: custom.name || name,
       description: custom.description || `HTML project with multiple files`,
       type: 'html-project',
       path: `${folderName}/index.html`,
       category: custom.category || 'Other',
-      icon: custom.icon || '📁',
+      icon: custom.icon || getIconByCategory(name, custom.category || 'Other'), // Auto-generate!
       featured: custom.featured || false,
     });
   });
@@ -224,6 +214,13 @@ interface HtmlCustomization {
 
 const htmlCustomizations: Record<string, HtmlCustomization> = {
   // ===== GAMES =====
+  'snake-ai': {
+    name: 'Snake AI Battle',
+    description: 'Smart AI Snake Battle - Watch AI play or fight against it!',
+    category: 'Games',
+    icon: '🤖',
+    featured: true,
+  },
   'tictactoe': {
     name: 'Tic Tac Toe',
     description: 'Classic Tic Tac Toe game for two players',

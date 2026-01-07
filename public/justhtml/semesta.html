@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Semesta Nova - Galaxy & Solar System</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Mencegah scroll default pada mobile saat memutar scene */
+            touch-action: none; 
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: rgba(255, 255, 255, 0.9);
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            backdrop-filter: blur(4px);
+        }
+        h1 {
+            margin: 0;
+            font-weight: 300;
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+        }
+        p {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            opacity: 0.8;
+            margin-bottom: 0;
+        }
+        .instruction {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            pointer-events: none;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+        /* Responsif untuk layar kecil */
+        @media (max-width: 600px) {
+            h1 { font-size: 1rem; }
+            #ui { top: 10px; left: 10px; right: 10px; width: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <h1>NOVA'S COSMOS</h1>
+        <p>Galaksi & Tata Surya Mini</p>
+    </div>
+    <div class="instruction">
+        Desktop: Klik & Drag / Scroll<br>
+        Mobile: Sentuh & Geser / Cubit untuk Zoom
+    </div>
+    <div id="canvas-container"></div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- Konfigurasi ---
+        const config = {
+            // Galaxy Config
+            count: 40000,
+            size: 0.05,
+            radius: 8,
+            branches: 3,
+            spin: 1,
+            randomness: 0.2,
+            randomnessPower: 3,
+            insideColor: '#ff6030',
+            outsideColor: '#1b3984',
+            
+            // Solar System Config (Skala Artistik, bukan nyata)
+            sunSize: 0.5,
+            planetSpeedMultiplier: 0.5
+        };
+
+        let scene, camera, renderer, controls;
+        let galaxyGeometry, galaxyMaterial, galaxyPoints;
+        let solarSystemGroup;
+        const planets = []; // Array untuk menyimpan objek planet agar bisa dianimasikan
+
+        // --- Fungsi Helper Tekstur Prosedural (Planet Generator) ---
+        function createPlanetTexture(type) {
+            const size = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Background dasar
+            ctx.fillStyle = type === 'sun' ? '#FDB813' : 
+                           type === 'earth' ? '#1a4485' : 
+                           type === 'mars' ? '#c1440e' : 
+                           type === 'jupiter' ? '#c99039' : '#888';
+            ctx.fillRect(0, 0, size, size);
+
+            // Tambahkan detail noise/garis
+            for (let i = 0; i < 200; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                const w = Math.random() * 100;
+                const h = Math.random() * 50;
+                
+                if (type === 'earth') {
+                    // Benua hijau/coklat
+                    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(34, 139, 34, 0.4)' : 'rgba(210, 180, 140, 0.4)';
+                    ctx.beginPath();
+                    ctx.arc(x, y, w/2, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Awan
+                    if (i % 5 === 0) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                        ctx.beginPath();
+                        ctx.ellipse(x, y, w, h/3, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                } else if (type === 'jupiter') {
+                    // Garis-garis gas
+                    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(165, 42, 42, 0.1)' : 'rgba(255, 228, 181, 0.1)';
+                    ctx.fillRect(0, y, size, h/2);
+                } else if (type === 'mars') {
+                    ctx.fillStyle = 'rgba(101, 67, 33, 0.2)';
+                    ctx.beginPath();
+                    ctx.arc(x, y, w/3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createStarTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.8)');
+            gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.2)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 32, 32);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function init() {
+            // 1. Setup Scene
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.02); 
+
+            // 2. Setup Camera (Mundur sedikit agar tata surya terlihat)
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 5, 8); 
+
+            // 3. Setup Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            // Mengaktifkan shadow map untuk efek bayangan planet (opsional, berat di mobile low-end, kita pakai shading basic saja)
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // 4. Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.autoRotate = false; // Kita matikan rotasi scene agar fokus ke orbit planet
+            
+            // Limitasi Zoom agar tidak menembus matahari
+            controls.minDistance = 2;
+            controls.maxDistance = 20;
+
+            // 5. Lighting (PENTING untuk Planet)
+            // Cahaya Ambient (dasar)
+            const ambientLight = new THREE.AmbientLight(0x333333); 
+            scene.add(ambientLight);
+
+            // Cahaya Matahari (Point Light di tengah)
+            const sunLight = new THREE.PointLight(0xffffff, 2, 50);
+            sunLight.position.set(0, 0, 0);
+            scene.add(sunLight);
+
+            // 6. Generate Objects
+            generateGalaxy();
+            generateSolarSystem();
+            generateBackgroundStars();
+
+            // 7. Events
+            window.addEventListener('resize', onWindowResize);
+            
+            // 8. Start Loop
+            animate();
+        }
+
+        function generateSolarSystem() {
+            solarSystemGroup = new THREE.Group();
+            scene.add(solarSystemGroup);
+
+            // --- MATAHARI ---
+            const sunGeometry = new THREE.SphereGeometry(config.sunSize, 32, 32);
+            const sunMaterial = new THREE.MeshBasicMaterial({ 
+                map: createPlanetTexture('sun'),
+                color: 0xffdd00 
+            }); // Basic Material agar bersinar sendiri (unlit)
+            const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+            
+            // Efek Glow Matahari (Sprite sederhana)
+            const spriteMaterial = new THREE.SpriteMaterial({ 
+                map: createStarTexture(), 
+                color: 0xffaa00, 
+                transparent: true, 
+                blending: THREE.AdditiveBlending 
+            });
+            const sunGlow = new THREE.Sprite(spriteMaterial);
+            sunGlow.scale.set(3, 3, 3);
+            sun.add(sunGlow);
+            solarSystemGroup.add(sun);
+
+            // --- PLANET HELPER ---
+            const createPlanet = (type, size, distance, speed) => {
+                // Wadah pivot untuk rotasi mengelilingi matahari
+                const pivot = new THREE.Object3D(); 
+                pivot.userData = { speed: speed }; // Simpan speed di user data
+                solarSystemGroup.add(pivot);
+
+                // Geometri Planet
+                const geometry = new THREE.SphereGeometry(size, 32, 32);
+                const material = new THREE.MeshStandardMaterial({
+                    map: createPlanetTexture(type),
+                    roughness: 0.7,
+                    metalness: 0.1
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                
+                // Posisi awal
+                mesh.position.x = distance;
+                
+                // Jika Saturnus/Jupiter, kita miringkan sedikit pivotnya
+                if (type === 'jupiter') mesh.rotation.z = 0.1;
+
+                pivot.add(mesh);
+                
+                // Tambahkan ke array untuk animasi
+                planets.push({ pivot: pivot, mesh: mesh, speed: speed, distance: distance });
+
+                // Jejak Orbit (Garis tipis)
+                const orbitGeo = new THREE.RingGeometry(distance - 0.02, distance + 0.02, 64);
+                const orbitMat = new THREE.MeshBasicMaterial({ 
+                    color: 0xffffff, 
+                    side: THREE.DoubleSide, 
+                    transparent: true, 
+                    opacity: 0.1 
+                });
+                const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+                orbit.rotation.x = Math.PI / 2;
+                scene.add(orbit); // Orbit statis di scene
+            };
+
+            // Buat Planet (Skala tidak akurat, demi estetika)
+            createPlanet('earth', 0.2, 2, 0.5);      // Bumi
+            createPlanet('mars', 0.15, 3, 0.3);      // Mars
+            createPlanet('jupiter', 0.4, 5, 0.1);    // Jupiter
+        }
+
+        function generateGalaxy() {
+            if (galaxyPoints) {
+                galaxyGeometry.dispose();
+                galaxyMaterial.dispose();
+                scene.remove(galaxyPoints);
+            }
+
+            galaxyGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(config.count * 3);
+            const colors = new Float32Array(config.count * 3);
+            const scales = new Float32Array(config.count * 1);
+
+            const colorInside = new THREE.Color(config.insideColor);
+            const colorOutside = new THREE.Color(config.outsideColor);
+
+            for (let i = 0; i < config.count; i++) {
+                const i3 = i * 3;
+                // Kita buat lubang di tengah galaksi (radiusStart) agar tidak menabrak matahari
+                const radius = Math.random() * config.radius + 1.5; 
+                const spinAngle = radius * config.spin;
+                const branchAngle = (i % config.branches) / config.branches * Math.PI * 2;
+
+                const randomX = Math.pow(Math.random(), config.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * config.randomness * radius;
+                const randomY = Math.pow(Math.random(), config.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * config.randomness * radius;
+                const randomZ = Math.pow(Math.random(), config.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * config.randomness * radius;
+
+                positions[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX;
+                positions[i3 + 1] = randomY; 
+                positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ;
+
+                const mixedColor = colorInside.clone();
+                mixedColor.lerp(colorOutside, radius / config.radius);
+
+                colors[i3] = mixedColor.r;
+                colors[i3 + 1] = mixedColor.g;
+                colors[i3 + 2] = mixedColor.b;
+
+                scales[i] = Math.random();
+            }
+
+            galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            galaxyGeometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
+
+            galaxyMaterial = new THREE.PointsMaterial({
+                size: config.size,
+                sizeAttenuation: true,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending,
+                vertexColors: true,
+                map: createStarTexture(),
+                transparent: true,
+                opacity: 0.6
+            });
+
+            galaxyPoints = new THREE.Points(galaxyGeometry, galaxyMaterial);
+            scene.add(galaxyPoints);
+        }
+
+        function generateBackgroundStars() {
+            const bgCount = 1000;
+            const bgGeometry = new THREE.BufferGeometry();
+            const bgPositions = new Float32Array(bgCount * 3);
+            for(let i = 0; i < bgCount * 3; i++) {
+                bgPositions[i] = (Math.random() - 0.5) * 80; 
+            }
+            bgGeometry.setAttribute('position', new THREE.BufferAttribute(bgPositions, 3));
+            const bgMaterial = new THREE.PointsMaterial({
+                size: 0.05,
+                color: 0x888888,
+                transparent: true,
+                opacity: 0.3
+            });
+            const bgStars = new THREE.Points(bgGeometry, bgMaterial);
+            scene.add(bgStars);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate(time) {
+            requestAnimationFrame(animate);
+
+            const t = time * 0.001; // Konversi ke detik
+
+            // Rotasi Galaksi (sangat pelan)
+            if (galaxyPoints) {
+                galaxyPoints.rotation.y = t * 0.05;
+            }
+
+            // Animasi Planet
+            planets.forEach(p => {
+                // Orbit mengelilingi matahari
+                p.pivot.rotation.y = t * p.speed;
+                // Rotasi planet pada porosnya sendiri
+                p.mesh.rotation.y = t * 1; 
+            });
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        init();
+
+    </script>
+</body>
+</html>

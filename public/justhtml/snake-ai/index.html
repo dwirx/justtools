@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake AI Battle</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="/" class="nav-btn">🏠 Home</a>
+        <a href="/myapps" class="nav-btn">← Back</a>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>Snake AI <span class="accent">Battle</span></h1>
+            <p>Advanced Pathfinding AI • Player vs AI • High Scores</p>
+        </header>
+
+        <div class="game-wrapper">
+            <div class="game-info">
+                <div class="score-card p1">
+                    <div class="label">Player / AI 1</div>
+                    <div class="score" id="score1">0</div>
+                    <div class="status" id="status1">Alive</div>
+                </div>
+                
+                <div class="controls-info">
+                    <div class="mode-select">
+                        <select id="gameMode">
+                            <option value="solo">Solo AI Demo</option>
+                            <option value="pva">Player vs AI</option>
+                            <option value="ava">AI vs AI Battle</option>
+                        </select>
+                    </div>
+                    <button id="startBtn" class="primary-btn">Start Game</button>
+                    <div class="speed-control">
+                        <label>Speed: <span id="speedVal">1x</span></label>
+                        <input type="range" id="speedRange" min="1" max="10" value="5">
+                    </div>
+                </div>
+
+                <div class="score-card p2">
+                    <div class="label">AI 2</div>
+                    <div class="score" id="score2">0</div>
+                    <div class="status" id="status2">Waiting</div>
+                </div>
+            </div>
+
+            <canvas id="gameCanvas" width="600" height="600"></canvas>
+            
+            <div class="legend">
+                <div class="item"><span class="color-box p1-color"></span> P1/AI 1</div>
+                <div class="item"><span class="color-box p2-color"></span> AI 2</div>
+                <div class="item"><span class="color-box food-color"></span> Food</div>
+            </div>
+        </div>
+        
+        <div class="how-to">
+            <h3>Controls</h3>
+            <p><strong>Player:</strong> Arrow Keys to move</p>
+            <p><strong>AI:</strong> Uses BFS/A* pathfinding to hunt food while avoiding collisions.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

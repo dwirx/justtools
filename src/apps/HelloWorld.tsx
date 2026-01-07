@@ -1,16 +1,18 @@
-// =============================================================
-// CONTOH APP TSX - Auto-detected!
-// =============================================================
-// File ini otomatis terdeteksi dan muncul di My Apps
-// Cukup export default component dan appMeta (opsional)
-// =============================================================
+// ╔═══════════════════════════════════════════════════════════════════════════╗
+// ║                    CONTOH APP TSX - Auto-detected!                        ║
+// ╠═══════════════════════════════════════════════════════════════════════════╣
+// ║  File ini otomatis terdeteksi dan muncul di Homepage.                     ║
+// ║  Header Back & Home OTOMATIS ditambahkan! Tidak perlu import manual.      ║
+// ║                                                                           ║
+// ║  📌 Cukup export default component saja!                                  ║
+// ╚═══════════════════════════════════════════════════════════════════════════╝
 
 import { motion } from 'framer-motion';
 
 // Metadata opsional - jika tidak ada, akan auto-generate dari nama file
 export const appMeta = {
   name: 'Hello World',
-  description: 'Contoh app TSX yang auto-detected',
+  description: 'Contoh app TSX yang auto-detected dengan header otomatis',
   category: 'Education' as const,
   icon: '👋',
   featured: true,
@@ -41,23 +43,20 @@ const HelloWorld = () => {
           Ini adalah contoh app TSX yang auto-detected
         </p>
         
-        <div className="bg-white/10 rounded-xl p-4 text-left">
+        <div className="bg-white/10 rounded-xl p-4 text-left space-y-2">
           <p className="text-white/60 text-sm font-mono">
             📁 src/apps/HelloWorld.tsx
           </p>
-          <p className="text-white/80 text-sm mt-2">
-            ✨ Buat file .tsx baru di folder ini, otomatis muncul di My Apps!
+          <p className="text-white/80 text-sm">
+            ✨ Buat file .tsx baru di folder ini, otomatis muncul di Homepage!
+          </p>
+          <p className="text-white/80 text-sm">
+            🎯 Icon akan di-generate otomatis jika tidak ditentukan!
+          </p>
+          <p className="text-green-300 text-sm font-medium">
+            ⬅️ Header Back & Home sudah OTOMATIS ditambahkan!
           </p>
         </div>
-        
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => window.history.back()}
-          className="mt-6 px-6 py-3 bg-white text-purple-600 font-semibold rounded-full hover:bg-white/90 transition-colors"
-        >
-          ← Kembali
-        </motion.button>
       </motion.div>
     </div>
   );
